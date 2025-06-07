@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ものの名前AI">
+    <meta name="theme-color" content="#764ba2">
+    <link rel="manifest" href="manifest.json">
+    <title>お気に入り - ものの名前おしえますAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .back-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: #2980b9;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .page-subtitle {
+            font-size: 16px;
+            color: #7f8c8d;
+        }
+        
+        .favorites-container {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .favorite-item {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .favorite-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .item-info {
+            flex: 1;
+        }
+        
+        .object-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .timestamp {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .confidence {
+            font-size: 14px;
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        .item-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-left: 15px;
+            border: 2px solid #ecf0f1;
+        }
+        
+        .item-description {
+            font-size: 16px;
+            color: #34495e;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .item-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-speak {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-share {
+            background: #3498db;
+            color: white;
+        }
+        
+        .action-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+        
+        .empty-state {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .empty-description {
+            font-size: 16px;
+            color: #7f8c8d;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        
+        .empty-action {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .empty-action:hover {
+            background: #2980b9;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .item-count {
+            font-size: 16px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .clear-all-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .clear-all-btn:hover {
+            background: #c0392b;
+        }
+        
+        @media (max-width: 480px) {
+            .favorite-item {
+                padding: 15px;
+            }
+            
+            .item-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .item-image {
+                width: 100%;
+                height: 200px;
+                margin: 0;
+            }
+            
+            .item-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-button" onclick="goBack()">← 戻る</button>
+        <h1 class="page-title">💖 お気に入り</h1>
+        <p class="page-subtitle">保存した認識結果を確認できます</p>
+    </div>
+    
+    <div class="controls" id="controls" style="display: none;">
+        <div class="item-count" id="itemCount">0件のアイテム</div>
+        <button class="clear-all-btn" onclick="clearAllFavorites()">すべて削除</button>
+    </div>
+    
+    <div class="favorites-container" id="favoritesContainer">
+        <!-- お気に入りアイテムがここに表示されます -->
+    </div>
+    
+    <div class="empty-state" id="emptyState">
+        <div class="empty-icon">📷</div>
+        <h2 class="empty-title">お気に入りはまだありません</h2>
+        <p class="empty-description">
+            カメラで物体を撮影して認識結果を保存すると、<br>
+            ここに表示されます。
+        </p>
+        <button class="empty-action" onclick="goToCamera()">カメラで撮影する</button>
+    </div>
+
+    <script>
+        // ページ読み込み時に実行
+        window.addEventListener('load', loadFavorites);
+        
+        function loadFavorites() {
+            try {
+                const favorites = JSON.parse(localStorage.getItem('aiRecognitionFavorites') || '[]');
+                displayFavorites(favorites);
+            } catch (error) {
+                console.error('お気に入り読み込みエラー:', error);
+                displayFavorites([]);
+            }
+        }
+        
+        function displayFavorites(favorites) {
+            const container = document.getElementById('favoritesContainer');
+            const emptyState = document.getElementById('emptyState');
+            const controls = document.getElementById('controls');
+            const itemCount = document.getElementById('itemCount');
+            
+            if (favorites.length === 0) {
+                emptyState.style.display = 'block';
+                controls.style.display = 'none';
+                container.innerHTML = '';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            controls.style.display = 'flex';
+            itemCount.textContent = `${favorites.length}件のアイテム`;
+            
+            container.innerHTML = '';
+            
+            favorites.forEach((favorite, index) => {
+                const item = createFavoriteItem(favorite, index);
+                container.appendChild(item);
+            });
+        }
+        
+        function createFavoriteItem(favorite, index) {
+            const item = document.createElement('div');
+            item.className = 'favorite-item';
+            
+            const timestamp = new Date(favorite.timestamp);
+            const formattedDate = timestamp.toLocaleDateString('ja-JP', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            item.innerHTML = `
+                <div class="item-header">
+                    <div class="item-info">
+                        <div class="object-name">${favorite.result.name}</div>
+                        <div class="timestamp">${formattedDate}</div>
+                        <div class="confidence">信頼度: ${favorite.result.confidence}%</div>
+                    </div>
+                    <img src="${favorite.image}" alt="${favorite.result.name}" class="item-image">
+                </div>
+                
+                <div class="item-description">
+                    ${favorite.result.description}
+                </div>
+                
+                <div class="item-actions">
+                    <button class="action-btn btn-speak" onclick="speakFavorite(${index})">
+                        🔊 読み上げ
+                    </button>
+                    <button class="action-btn btn-share" onclick="shareFavorite(${index})">
+                        📤 共有
+                    </button>
+                    <button class="action-btn btn-delete" onclick="deleteFavorite(${index})">
+                        🗑️ 削除
+                    </button>
+                </div>
+            `;
+            
+            return item;
+        }
+        
+        function speakFavorite(index) {
+            try {
+                const favorites = JSON.parse(localStorage.getItem('aiRecognitionFavorites') || '[]');
+                const favorite = favorites[index];
+                
+                if (favorite && 'speechSynthesis' in window) {
+                    const text = `これは${favorite.result.name}です。${favorite.result.description}`;
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'ja-JP';
+                    utterance.rate = 0.8;
+                    speechSynthesis.speak(utterance);
+                }
+            } catch (error) {
+                console.error('音声読み上げエラー:', error);
+            }
+        }
+        
+        async function shareFavorite(index) {
+            try {
+                const favorites = JSON.parse(localStorage.getItem('aiRecognitionFavorites') || '[]');
+                const favorite = favorites[index];
+                
+                if (favorite) {
+                    const shareText = `${favorite.result.name}\n\n${favorite.result.description}\n\n信頼度: ${favorite.result.confidence}%\n\n#ものの名前おしえますAI`;
+                    
+                    if (navigator.share) {
+                        // Web Share API を使用
+                        await navigator.share({
+                            title: `${favorite.result.name} - ものの名前おしえますAI`,
+                            text: shareText,
+                            url: window.location.origin + '/mono-no-namae-ai/'
+                        });
+                    } else {
+                        // フォールバック: クリップボードにコピー
+                        await navigator.clipboard.writeText(shareText);
+                        alert('📋 クリップボードにコピーしました！');
+                    }
+                }
+            } catch (error) {
+                console.error('共有エラー:', error);
+                alert('⚠️ 共有に失敗しました');
+            }
+        }
+        
+        function deleteFavorite(index) {
+            if (confirm('このお気に入りを削除しますか？')) {
+                try {
+                    let favorites = JSON.parse(localStorage.getItem('aiRecognitionFavorites') || '[]');
+                    favorites.splice(index, 1);
+                    localStorage.setItem('aiRecognitionFavorites', JSON.stringify(favorites));
+                    
+                    displayFavorites(favorites);
+                    
+                    if ('speechSynthesis' in window) {
+                        const utterance = new SpeechSynthesisUtterance('お気に入りを削除しました');
+                        utterance.lang = 'ja-JP';
+                        speechSynthesis.speak(utterance);
+                    }
+                } catch (error) {
+                    console.error('削除エラー:', error);
+                    alert('⚠️ 削除に失敗しました');
+                }
+            }
+        }
+        
+        function clearAllFavorites() {
+            if (confirm('すべてのお気に入りを削除しますか？\nこの操作は取り消せません。')) {
+                try {
+                    localStorage.removeItem('aiRecognitionFavorites');
+                    displayFavorites([]);
+                    
+                    if ('speechSynthesis' in window) {
+                        const utterance = new SpeechSynthesisUtterance('すべてのお気に入りを削除しました');
+                        utterance.lang = 'ja-JP';
+                        speechSynthesis.speak(utterance);
+                    }
+                } catch (error) {
+                    console.error('削除エラー:', error);
+                    alert('⚠️ 削除に失敗しました');
+                }
+            }
+        }
+        
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+        
+        function goToCamera() {
+            window.location.href = 'camera.html';
+        }
+        
+        // エラーハンドリング
+        window.addEventListener('error', function(event) {
+            console.error('アプリエラー:', event.error);
+        });
+    </script>
+</body>
+</html>

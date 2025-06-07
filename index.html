@@ -6,6 +6,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ものの名前AI">
+    <meta name="theme-color" content="#764ba2">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <title>ものの名前おしえますAI</title>
     <style>
         * {
@@ -194,8 +197,8 @@
                 📱 基本機能テスト
             </button>
             
-            <button class="function-btn btn-camera" onclick="executeCameraTest()" id="cameraBtn">
-                📷 カメラ機能テスト
+            <button class="function-btn btn-camera" onclick="openCameraPage()" id="cameraBtn">
+                📷 カメラで撮影
             </button>
             
             <button class="function-btn btn-speech" onclick="executeSpeechTest()" id="speechBtn">
@@ -206,8 +209,8 @@
                 🤖 AI認識テスト
             </button>
             
-            <button class="function-btn btn-access" onclick="executeAccessibilityTest()" id="accessBtn">
-                ♿ アクセシビリティテスト
+            <button class="function-btn btn-access" onclick="openFavoritesPage()" id="favoritesBtn">
+                💖 お気に入り
             </button>
         </div>
         
@@ -285,49 +288,11 @@
             }, 1000);
         }
         
-        function executeCameraTest() {
+        function openCameraPage() {
             if (isProcessing) return;
-            isProcessing = true;
             
-            updateStatus('カメラアクセステスト中...');
-            showLoading('cameraBtn');
-            
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    } 
-                })
-                .then(function(stream) {
-                    updateStatus('カメラアクセス成功 ✅');
-                    hideLoading('cameraBtn');
-                    
-                    alert('📷 カメラテスト成功!\n\nカメラにアクセスできました。\n\n• 権限取得: OK\n• ストリーム作成: OK');
-                    
-                    speak('カメラ機能が正常に動作しています');
-                    
-                    // ストリームを停止
-                    stream.getTracks().forEach(track => track.stop());
-                    isProcessing = false;
-                })
-                .catch(function(error) {
-                    updateStatus('カメラアクセス失敗 ❌');
-                    hideLoading('cameraBtn');
-                    
-                    alert('⚠️ カメラアクセスエラー\n\nカメラの使用を許可してください。\n\n設定 → Safari → カメラ');
-                    
-                    console.error('カメラエラー:', error);
-                    isProcessing = false;
-                });
-            } else {
-                updateStatus('カメラ非対応 ❌');
-                hideLoading('cameraBtn');
-                
-                alert('❌ カメラ非対応\n\nこのブラウザはカメラに対応していません。');
-                isProcessing = false;
-            }
+            updateStatus('カメラページを開いています...');
+            window.location.href = 'camera.html';
         }
         
         function executeSpeechTest() {
@@ -411,22 +376,11 @@
             }, 2500);
         }
         
-        function executeAccessibilityTest() {
+        function openFavoritesPage() {
             if (isProcessing) return;
-            isProcessing = true;
             
-            updateStatus('アクセシビリティ検証中...');
-            showLoading('accessBtn');
-            
-            setTimeout(() => {
-                updateStatus('アクセシビリティテスト完了 ✅');
-                hideLoading('accessBtn');
-                
-                alert('♿ アクセシビリティチェック\n\n✅ 大きな文字サイズ (24px+)\n✅ 高コントラストデザイン\n✅ タッチターゲット (44px+)\n✅ 音声ガイダンス対応\n✅ iPhone最適化\n✅ レスポンシブデザイン\n\n高齢者にも使いやすい設計です！');
-                
-                speak('アクセシビリティ機能をテストします。大きな文字、高コントラスト、音声ガイダンスが有効です。高齢者の方にも安心してお使いいただけます。');
-                isProcessing = false;
-            }, 1200);
+            updateStatus('お気に入りページを開いています...');
+            window.location.href = 'favorites.html';
         }
         
         // 初期化

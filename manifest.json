@@ -1,0 +1,59 @@
+{
+  "name": "ものの名前おしえますAI",
+  "short_name": "ものの名前AI",
+  "description": "高齢者向けの物体認識AIアプリです。カメラをかざすだけで、物の名前をAIが教えてくれます。",
+  "start_url": "/mono-no-namae-ai/",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#764ba2",
+  "orientation": "portrait",
+  "categories": ["utilities", "accessibility", "education"],
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "screenshot-narrow.png", 
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "features": [
+    "camera",
+    "microphone"
+  ],
+  "shortcuts": [
+    {
+      "name": "カメラで撮影",
+      "short_name": "カメラ",
+      "description": "カメラを起動して物体を認識",
+      "url": "/mono-no-namae-ai/camera.html",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}
