@@ -307,9 +307,9 @@
             <div class="object-description" id="objectDescription">-</div>
             
             <div class="action-buttons">
-                <button class="action-btn btn-retry" onclick="retryCapture()">📷 再撮影</button>
-                <button class="action-btn btn-save" onclick="saveToFavorites()">💖 保存</button>
-                <button class="action-btn btn-speak" onclick="speakResult()">🔊 読み上げ</button>
+                <button class="action-btn btn-retry" onclick="retryCapture()">📷 続けて撮影</button>
+                <button class="action-btn btn-save" onclick="saveToFavorites()">💖 保存して続行</button>
+                <button class="action-btn btn-speak" onclick="speakResult()">🔊 もう一度聞く</button>
             </div>
         </div>
         
@@ -391,6 +391,11 @@
         
         async function capturePhoto() {
             if (!currentStream) return;
+            
+            // 撮影ボタンを一時的に無効化
+            const captureBtn = document.getElementById('captureBtn');
+            captureBtn.disabled = true;
+            captureBtn.style.opacity = '0.6';
             
             updateStatus('写真を撮影中...');
             
@@ -851,6 +856,14 @@
             
             // 結果を音声で読み上げ
             speak(`これは${result.name}です。${result.description}`);
+            
+            // 5秒後に自動的にカメラビューに戻る（高齢者向け配慮）
+            setTimeout(() => {
+                if (currentRecognitionResult) { // まだ結果画面にいる場合のみ
+                    resetCameraView();
+                    speak('続けて撮影できます');
+                }
+            }, 5000);
         }
         
         function showLoadingOverlay() {
@@ -862,18 +875,32 @@
         }
         
         function retryCapture() {
+            resetCameraView();
+        }
+        
+        function resetCameraView() {
             const video = document.getElementById('cameraVideo');
             const capturedImage = document.getElementById('capturedImage');
             const recognitionPanel = document.getElementById('recognitionPanel');
             
+            // ライブカメラ表示に戻す
             video.style.display = 'block';
             capturedImage.style.display = 'none';
             recognitionPanel.style.display = 'none';
             
+            // データをクリア
             capturedImageData = null;
             currentRecognitionResult = null;
             
+            // ローディング状態も解除
+            hideLoadingOverlay();
+            
             updateStatus('物体をフレーム内に収めて撮影ボタンを押してください');
+            
+            // 撮影ボタンを再度有効化
+            const captureBtn = document.getElementById('captureBtn');
+            captureBtn.disabled = false;
+            captureBtn.style.opacity = '1';
         }
         
         function saveToFavorites() {
@@ -901,6 +928,11 @@
                 
                 alert('💖 お気に入りに保存しました！');
                 speak('お気に入りに保存しました');
+                
+                // 保存後、自動的にカメラビューに戻る
+                setTimeout(() => {
+                    resetCameraView();
+                }, 1000);
                 
             } catch (error) {
                 console.error('保存エラー:', error);
