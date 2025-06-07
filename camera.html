@@ -32,13 +32,15 @@
         }
         
         .video-container {
-            flex: 1;
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: #000;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 180px; /* コントロールパネル分の余白 */
         }
         
         #cameraVideo {
@@ -73,25 +75,27 @@
             50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.05); }
         }
         
+        .floating-controls {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+        }
+        
         .controls-panel {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 20px);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .camera-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            height: 120px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 20px;
+            padding-bottom: calc(env(safe-area-inset-bottom, 15px) + 15px);
+            z-index: 999;
         }
         
         .control-btn {
@@ -103,7 +107,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            position: absolute;
         }
         
         .capture-btn {
@@ -114,15 +117,10 @@
             font-size: 40px;
             width: 120px;
             height: 120px;
-            z-index: 10;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
         }
         
         .capture-btn:active {
-            transform: translate(-50%, -50%) scale(0.95);
+            transform: scale(0.95);
             background: linear-gradient(135deg, #f8f9fa, #e9ecef);
         }
         
@@ -132,10 +130,6 @@
             font-size: 22px;
             width: 70px;
             height: 70px;
-            position: absolute;
-            right: 30px;
-            top: 50%;
-            transform: translateY(-50%);
         }
         
         .gallery-btn {
@@ -144,10 +138,6 @@
             font-size: 22px;
             width: 70px;
             height: 70px;
-            position: absolute;
-            left: 30px;
-            top: 50%;
-            transform: translateY(-50%);
         }
         
         .control-btn:active {
@@ -323,22 +313,22 @@
             </div>
         </div>
         
+        <div class="floating-controls">
+            <button class="control-btn gallery-btn" onclick="openGallery()" title="ギャラリー">
+                🖼️
+            </button>
+            
+            <button class="control-btn capture-btn" onclick="capturePhoto()" id="captureBtn" title="撮影">
+                📷
+            </button>
+            
+            <button class="control-btn switch-btn" onclick="switchCamera()" title="カメラ切替">
+                🔄
+            </button>
+        </div>
+        
         <div class="controls-panel">
             <div class="status-text" id="statusText">物体をフレーム内に収めて撮影ボタンを押してください</div>
-            
-            <div class="camera-controls">
-                <button class="control-btn gallery-btn" onclick="openGallery()" title="ギャラリー">
-                    🖼️
-                </button>
-                
-                <button class="control-btn capture-btn" onclick="capturePhoto()" id="captureBtn" title="撮影">
-                    📷
-                </button>
-                
-                <button class="control-btn switch-btn" onclick="switchCamera()" title="カメラ切替">
-                    🔄
-                </button>
-            </div>
         </div>
     </div>
 

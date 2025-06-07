@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>レイアウトテスト - カメラ画面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .test-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(45deg, #333, #666);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .screen-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 100;
+        }
+        
+        .center-marker {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 4px;
+            background: red;
+            border-radius: 50%;
+            z-index: 50;
+        }
+        
+        .center-marker::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            width: 44px;
+            height: 44px;
+            border: 1px solid red;
+            border-radius: 50%;
+        }
+        
+        .floating-controls {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+        }
+        
+        .control-btn {
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .capture-btn {
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            color: #e74c3c;
+            border: 6px solid #e74c3c;
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.6);
+            font-size: 40px;
+            width: 120px;
+            height: 120px;
+        }
+        
+        .side-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+            font-size: 22px;
+            width: 70px;
+            height: 70px;
+        }
+        
+        .status-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 20px;
+            padding-bottom: calc(env(safe-area-inset-bottom, 15px) + 15px);
+            z-index: 999;
+            text-align: center;
+        }
+        
+        .viewport-boundaries {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px solid yellow;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .safe-area-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: env(safe-area-inset-bottom, 0px);
+            background: rgba(255, 0, 0, 0.3);
+            z-index: 5;
+        }
+        
+        .device-info {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            color: black;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="screen-info">
+            画面サイズ: <span id="screenSize">-</span><br>
+            ビューポート: <span id="viewport">-</span><br>
+            Safe Area: <span id="safeArea">-</span>
+        </div>
+        
+        <div class="device-info">
+            <strong>レイアウトテスト</strong><br>
+            🔴 画面中央マーカー<br>
+            🟡 ビューポート境界<br>
+            🔵 撮影ボタン位置<br>
+            🟠 Safe Area Bottom
+        </div>
+        
+        <div class="center-marker"></div>
+        <div class="viewport-boundaries"></div>
+        <div class="safe-area-bottom"></div>
+        
+        <div class="floating-controls">
+            <button class="control-btn side-btn">🖼️</button>
+            <button class="control-btn capture-btn">📷</button>
+            <button class="control-btn side-btn">🔄</button>
+        </div>
+        
+        <div class="status-panel">
+            <div>撮影ボタンの位置確認</div>
+            <div style="font-size: 12px; margin-top: 5px;">
+                bottom: 60px で画面内に表示されているかテスト
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateScreenInfo() {
+            const screenWidth = window.screen.width;
+            const screenHeight = window.screen.height;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const safeAreaBottom = getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)') || '0px';
+            
+            document.getElementById('screenSize').textContent = `${screenWidth}×${screenHeight}`;
+            document.getElementById('viewport').textContent = `${viewportWidth}×${viewportHeight}`;
+            document.getElementById('safeArea').textContent = safeAreaBottom;
+        }
+        
+        window.addEventListener('load', updateScreenInfo);
+        window.addEventListener('resize', updateScreenInfo);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(updateScreenInfo, 100);
+        });
+    </script>
+</body>
+</html>
