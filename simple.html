@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テストアプリ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f8ff;
+            text-align: center;
+            font-size: 18px;
+        }
+        h1 { color: #2c3e50; margin-bottom: 20px; }
+        .status {
+            background: #e8f5e8;
+            color: #27ae60;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            min-width: 200px;
+            cursor: pointer;
+        }
+        button:hover { background: #2980b9; }
+        .btn2 { background: #27ae60; }
+        .btn3 { background: #e74c3c; }
+    </style>
+</head>
+<body>
+    <h1>シンプルテストアプリ</h1>
+    <div class="status" id="status">状態: 準備完了</div>
+    
+    <button onclick="test1()">基本テスト</button><br>
+    <button class="btn2" onclick="test2()">音声テスト</button><br>
+    <button class="btn3" onclick="test3()">状態テスト</button><br>
+    
+    <p>iPhoneで動作確認中...</p>
+    
+    <script>
+        function test1() {
+            document.getElementById('status').textContent = '状態: 基本テスト完了';
+            alert('成功！アプリが動作しています');
+        }
+        
+        function test2() {
+            document.getElementById('status').textContent = '状態: 音声テスト中';
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance('テストです');
+                utterance.lang = 'ja-JP';
+                speechSynthesis.speak(utterance);
+                alert('音声テスト完了');
+            } else {
+                alert('音声非対応ブラウザです');
+            }
+        }
+        
+        function test3() {
+            const status = document.getElementById('status');
+            const current = status.textContent;
+            if (current.includes('変更')) {
+                status.textContent = '状態: リセット完了';
+            } else {
+                status.textContent = '状態: 状態変更完了';
+            }
+            alert('状態変更テスト完了');
+        }
+        
+        // ページ読み込み完了を確認
+        window.addEventListener('load', function() {
+            console.log('ページ読み込み完了');
+            document.getElementById('status').textContent = '状態: 読み込み完了';
+        });
+    </script>
+</body>
+</html>

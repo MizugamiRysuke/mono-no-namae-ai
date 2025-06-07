@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "ものの名前おしえますAI",
+    "slug": "mono-no-namae-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#f0f8ff",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#f0f8ff"
+      }
+    }
+  }
+}

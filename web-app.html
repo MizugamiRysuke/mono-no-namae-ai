@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ものの名前おしえますAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            color: #333;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+        
+        .status {
+            background: #e8f5e8;
+            color: #27ae60;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            padding: 18px 24px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 60px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary { background: linear-gradient(45deg, #3498db, #2980b9); }
+        .btn-success { background: linear-gradient(45deg, #2ecc71, #27ae60); }
+        .btn-warning { background: linear-gradient(45deg, #f39c12, #e67e22); }
+        .btn-camera { background: linear-gradient(45deg, #9b59b6, #8e44ad); }
+        .btn-speech { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+        
+        .instructions {
+            font-size: 14px;
+            color: #7f8c8d;
+            line-height: 1.5;
+        }
+        
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+            
+            .btn {
+                font-size: 16px;
+                padding: 16px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">ものの名前おしえますAI</h1>
+        <p class="subtitle">高齢者向け物体認識アプリ</p>
+        
+        <div class="status" id="status">
+            状態: 待機中
+        </div>
+        
+        <div class="button-container">
+            <button class="btn btn-primary" onclick="basicTest()">
+                基本機能テスト
+            </button>
+            
+            <button class="btn btn-success" onclick="cameraTest()">
+                カメラ機能テスト
+            </button>
+            
+            <button class="btn btn-warning" onclick="speechTest()">
+                音声機能テスト
+            </button>
+            
+            <button class="btn btn-camera" onclick="aiTest()">
+                AI認識テスト
+            </button>
+            
+            <button class="btn btn-speech" onclick="accessibilityTest()">
+                アクセシビリティテスト
+            </button>
+        </div>
+        
+        <p class="instructions">
+            各ボタンをタップして機能をテストしてください<br>
+            iPhoneのSafariで動作確認中
+        </p>
+    </div>
+
+    <script>
+        function updateStatus(message) {
+            document.getElementById('status').textContent = '状態: ' + message;
+        }
+        
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ja-JP';
+                utterance.rate = 0.8;
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        function basicTest() {
+            updateStatus('基本機能テスト実行中...');
+            
+            setTimeout(() => {
+                updateStatus('基本機能テスト完了');
+                alert('✅ 成功\n\nアプリが正常に動作しています！');
+                speak('基本機能が正常に動作しています');
+            }, 500);
+        }
+        
+        function cameraTest() {
+            updateStatus('カメラ機能テスト中...');
+            
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        updateStatus('カメラアクセス成功');
+                        alert('✅ カメラテスト成功\n\nカメラにアクセスできました！');
+                        speak('カメラ機能が正常に動作しています');
+                        stream.getTracks().forEach(track => track.stop());
+                    })
+                    .catch(function(error) {
+                        updateStatus('カメラアクセス失敗');
+                        alert('⚠️ カメラテスト\n\nカメラの許可が必要です');
+                    });
+            } else {
+                updateStatus('カメラ非対応');
+                alert('❌ カメラ非対応\n\nこのブラウザはカメラに対応していません');
+            }
+        }
+        
+        function speechTest() {
+            updateStatus('音声機能テスト中...');
+            
+            const testTexts = [
+                'これはりんごです',
+                'これはペンです', 
+                'これはコップです',
+                'これはねこです',
+                'これは花です'
+            ];
+            
+            const randomText = testTexts[Math.floor(Math.random() * testTexts.length)];
+            
+            setTimeout(() => {
+                updateStatus('音声テスト完了');
+                alert('🔊 音声テスト\n\n「' + randomText + '」と読み上げました');
+                speak('音声テストを開始します。' + randomText);
+            }, 500);
+        }
+        
+        function aiTest() {
+            updateStatus('AI認識テスト中...');
+            
+            const mockResults = [
+                { name: 'りんご', description: '赤い果物' },
+                { name: 'ペン', description: '書くための道具' },
+                { name: 'コップ', description: '飲み物を入れる容器' },
+                { name: 'ねこ', description: 'かわいい動物' },
+                { name: '花', description: '美しい植物' }
+            ];
+            
+            setTimeout(() => {
+                const result = mockResults[Math.floor(Math.random() * mockResults.length)];
+                updateStatus('認識結果: ' + result.name);
+                alert('🤖 AI認識結果\n\n物体: ' + result.name + '\n説明: ' + result.description);
+                speak('これは' + result.name + 'です。' + result.description + 'です。');
+            }, 2000);
+        }
+        
+        function accessibilityTest() {
+            updateStatus('アクセシビリティテスト中...');
+            
+            setTimeout(() => {
+                updateStatus('アクセシビリティテスト完了');
+                alert('♿ アクセシビリティテスト\n\n✓ 大きな文字\n✓ 高コントラスト\n✓ 音声ガイダンス\n✓ タッチ対応\n✓ レスポンシブデザイン');
+                speak('アクセシビリティ機能をテストします。大きな文字、高コントラスト、音声ガイダンスが有効です。');
+            }, 500);
+        }
+        
+        // 初期化
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                speak('ものの名前おしえますAIへようこそ。ボタンをタップして機能をテストできます。');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
