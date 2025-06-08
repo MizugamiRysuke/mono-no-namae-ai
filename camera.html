@@ -818,15 +818,39 @@
             displayRecognitionResult(result);
         }
         
-        async function callGoogleVisionAPI(imageData) {
-            // Google Vision API の実装（APIキーが必要）
-            // 現在はモック実装のため、実際のAPI呼び出しは行わない
+        // APIキー管理
+        function getStoredAPIKey() {
+            return localStorage.getItem('googleVisionAPIKey');
+        }
+        
+        function setAPIKey() {
+            const apiKey = prompt('Google Vision APIキーを入力してください:\n\n1. Google Cloud Consoleでプロジェクト作成\n2. Vision APIを有効化\n3. 認証情報でAPIキー作成\n4. そのAPIキーをここに入力');
+            if (apiKey && apiKey.trim()) {
+                localStorage.setItem('googleVisionAPIKey', apiKey.trim());
+                alert('APIキーが保存されました！次回から実際のAI認識を使用します。');
+                return apiKey.trim();
+            }
             return null;
+        }
+        
+        async function callGoogleVisionAPI(imageData) {
+            let apiKey = getStoredAPIKey();
             
-            /* 実際のGoogle Vision API呼び出し例:
+            // APIキーが未設定の場合、設定を促す
+            if (!apiKey) {
+                const shouldSetup = confirm('より高精度な認識のため、Google Vision APIを使用しますか？\n\n「OK」= APIキー設定\n「キャンセル」= デモ版継続');
+                if (shouldSetup) {
+                    apiKey = setAPIKey();
+                }
+                if (!apiKey) {
+                    return null; // モック認識にフォールバック
+                }
+            }
+            
             try {
                 const base64Image = imageData.split(',')[1];
-                const response = await fetch('https://vision.googleapis.com/v1/images:annotate?key=YOUR_API_KEY', {
+                
+                const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -838,30 +862,258 @@
                             },
                             features: [
                                 { type: 'LABEL_DETECTION', maxResults: 10 },
+                                { type: 'OBJECT_LOCALIZATION', maxResults: 10 },
                                 { type: 'TEXT_DETECTION', maxResults: 5 }
                             ]
                         }]
                     })
                 });
                 
-                const data = await response.json();
-                
-                if (data.responses && data.responses[0].labelAnnotations) {
-                    const labels = data.responses[0].labelAnnotations;
-                    const topLabel = labels[0];
-                    
-                    return {
-                        name: topLabel.description,
-                        confidence: Math.round(topLabel.score * 100),
-                        description: `${topLabel.description}として認識されました。`,
-                        category: 'AI認識結果'
-                    };
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
                 }
+                
+                const data = await response.json();
+                console.log('Vision API Response:', data);
+                
+                if (data.responses && data.responses[0]) {
+                    const result = processVisionAPIResponse(data.responses[0]);
+                    if (result) {
+                        return result;
+                    }
+                }
+                
+                throw new Error('有効な認識結果が得られませんでした');
+                
             } catch (error) {
                 console.error('Google Vision API エラー:', error);
-                return null;
+                
+                // APIエラーの場合、ユーザーに選択肢を提示
+                const retry = confirm(`AI認識エラー: ${error.message}\n\n「OK」= APIキー再設定\n「キャンセル」= デモ版で続行`);
+                if (retry) {
+                    const newApiKey = setAPIKey();
+                    if (newApiKey) {
+                        return await callGoogleVisionAPI(imageData); // 再試行
+                    }
+                }
+                
+                return null; // モック認識にフォールバック
             }
-            */
+        }
+        
+        function processVisionAPIResponse(response) {
+            let bestResult = null;
+            let bestScore = 0;
+            
+            // ラベル検出結果を処理
+            if (response.labelAnnotations && response.labelAnnotations.length > 0) {
+                const topLabel = response.labelAnnotations[0];
+                if (topLabel.score > bestScore) {
+                    bestScore = topLabel.score;
+                    bestResult = {
+                        name: translateToJapanese(topLabel.description),
+                        confidence: Math.round(topLabel.score * 100),
+                        description: generateDescription(topLabel.description, response.labelAnnotations),
+                        category: categorizeObject(topLabel.description),
+                        source: 'Google Vision API',
+                        rawLabels: response.labelAnnotations.slice(0, 5).map(l => l.description)
+                    };
+                }
+            }
+            
+            // オブジェクト位置検出結果を処理
+            if (response.localizedObjectAnnotations && response.localizedObjectAnnotations.length > 0) {
+                const topObject = response.localizedObjectAnnotations[0];
+                if (topObject.score > bestScore) {
+                    bestScore = topObject.score;
+                    bestResult = {
+                        name: translateToJapanese(topObject.name),
+                        confidence: Math.round(topObject.score * 100),
+                        description: generateDescription(topObject.name, response.localizedObjectAnnotations),
+                        category: categorizeObject(topObject.name),
+                        source: 'Google Vision API',
+                        rawLabels: response.localizedObjectAnnotations.slice(0, 5).map(o => o.name)
+                    };
+                }
+            }
+            
+            // テキスト検出結果があれば参考情報として追加
+            if (response.textAnnotations && response.textAnnotations.length > 0) {
+                const detectedText = response.textAnnotations[0].description.trim();
+                if (bestResult && detectedText) {
+                    bestResult.detectedText = detectedText;
+                    bestResult.description += `\n\n📝 画像内のテキスト: "${detectedText}"`;
+                }
+            }
+            
+            return bestResult;
+        }
+        
+        function translateToJapanese(englishTerm) {
+            const translations = {
+                // 一般的な物体
+                'apple': 'りんご',
+                'banana': 'バナナ',
+                'orange': 'オレンジ',
+                'bottle': 'ボトル',
+                'cup': 'コップ',
+                'mug': 'マグカップ',
+                'glass': 'グラス',
+                'plate': 'お皿',
+                'bowl': 'ボウル',
+                'spoon': 'スプーン',
+                'fork': 'フォーク',
+                'knife': 'ナイフ',
+                'book': '本',
+                'pen': 'ペン',
+                'pencil': '鉛筆',
+                'paper': '紙',
+                'notebook': 'ノート',
+                'phone': '電話',
+                'mobile phone': 'スマートフォン',
+                'smartphone': 'スマートフォン',
+                'computer': 'コンピューター',
+                'laptop': 'ノートパソコン',
+                'keyboard': 'キーボード',
+                'mouse': 'マウス',
+                'camera': 'カメラ',
+                'television': 'テレビ',
+                'tv': 'テレビ',
+                'remote control': 'リモコン',
+                'watch': '時計',
+                'clock': '時計',
+                'glasses': 'メガネ',
+                'sunglasses': 'サングラス',
+                'hat': '帽子',
+                'cap': 'キャップ',
+                'shirt': 'シャツ',
+                'jacket': 'ジャケット',
+                'shoes': '靴',
+                'bag': 'バッグ',
+                'wallet': '財布',
+                'key': '鍵',
+                'car': '車',
+                'bicycle': '自転車',
+                'umbrella': '傘',
+                'flower': '花',
+                'plant': '植物',
+                'tree': '木',
+                'cat': '猫',
+                'dog': '犬',
+                'bird': '鳥',
+                'fish': '魚',
+                'food': '食べ物',
+                'bread': 'パン',
+                'rice': 'ご飯',
+                'meat': '肉',
+                'vegetable': '野菜',
+                'fruit': '果物',
+                'water': '水',
+                'coffee': 'コーヒー',
+                'tea': '茶',
+                'milk': '牛乳',
+                'chair': '椅子',
+                'table': 'テーブル',
+                'desk': '机',
+                'bed': 'ベッド',
+                'door': 'ドア',
+                'window': '窓',
+                'wall': '壁',
+                'ceiling': '天井',
+                'floor': '床',
+                'light': '照明',
+                'lamp': 'ランプ',
+                'fan': '扇風機',
+                'heater': 'ヒーター',
+                'air conditioner': 'エアコン',
+                'refrigerator': '冷蔵庫',
+                'microwave': '電子レンジ',
+                'oven': 'オーブン',
+                'stove': 'コンロ',
+                'sink': 'シンク',
+                'toilet': 'トイレ',
+                'bathroom': 'バスルーム',
+                'mirror': '鏡',
+                'towel': 'タオル',
+                'soap': '石鹸',
+                'toothbrush': '歯ブラシ',
+                'medicine': '薬',
+                'pill': '錠剤',
+                'thermometer': '体温計',
+                'bandage': '包帯',
+                'tissue': 'ティッシュ',
+                'scissors': 'はさみ',
+                'ruler': '定規',
+                'eraser': '消しゴム',
+                'stapler': 'ホチキス',
+                'calculator': '電卓',
+                'calendar': 'カレンダー'
+            };
+            
+            const lower = englishTerm.toLowerCase();
+            return translations[lower] || englishTerm;
+        }
+        
+        function categorizeObject(objectName) {
+            const categories = {
+                'food': ['apple', 'banana', 'orange', 'bread', 'rice', 'meat', 'vegetable', 'fruit', 'food'],
+                'drink': ['water', 'coffee', 'tea', 'milk', 'bottle', 'cup', 'mug', 'glass'],
+                'electronics': ['phone', 'smartphone', 'computer', 'laptop', 'tv', 'television', 'camera', 'remote'],
+                'furniture': ['chair', 'table', 'desk', 'bed'],
+                'clothing': ['shirt', 'jacket', 'hat', 'cap', 'shoes'],
+                'stationery': ['pen', 'pencil', 'book', 'notebook', 'paper', 'scissors', 'ruler', 'eraser'],
+                'personal': ['glasses', 'watch', 'bag', 'wallet', 'key'],
+                'kitchen': ['plate', 'bowl', 'spoon', 'fork', 'knife', 'refrigerator', 'microwave', 'stove'],
+                'medical': ['medicine', 'pill', 'thermometer', 'bandage'],
+                'animals': ['cat', 'dog', 'bird', 'fish'],
+                'nature': ['flower', 'plant', 'tree']
+            };
+            
+            const lower = objectName.toLowerCase();
+            for (const [category, items] of Object.entries(categories)) {
+                if (items.some(item => lower.includes(item))) {
+                    return category;
+                }
+            }
+            return 'その他';
+        }
+        
+        function generateDescription(objectName, allResults) {
+            const japanese = translateToJapanese(objectName);
+            const category = categorizeObject(objectName);
+            
+            // 関連する検出結果から追加情報を生成
+            const relatedItems = allResults.slice(1, 4).map(item => 
+                translateToJapanese(item.description || item.name)
+            ).filter(item => item !== japanese);
+            
+            let description = `これは${japanese}です。`;
+            
+            // カテゴリに基づいた説明追加
+            const categoryDescriptions = {
+                'food': '食べ物です。栄養価があり、エネルギー源になります。',
+                'drink': '飲み物です。水分補給に使用します。',
+                'electronics': '電子機器です。日常生活で便利に使用できます。',
+                'furniture': '家具です。生活空間で使用します。',
+                'clothing': '衣類です。身に着けるものです。',
+                'stationery': '文房具です。書き物や事務作業に使用します。',
+                'personal': '身の回り品です。日常的に持ち歩くアイテムです。',
+                'kitchen': 'キッチン用品です。料理や食事に使用します。',
+                'medical': '医療用品です。健康管理に使用します。',
+                'animals': '動物です。生き物です。',
+                'nature': '自然のものです。植物や自然界のアイテムです。'
+            };
+            
+            if (categoryDescriptions[category]) {
+                description += ' ' + categoryDescriptions[category];
+            }
+            
+            // 関連アイテムがあれば追加
+            if (relatedItems.length > 0) {
+                description += `\n\n🔍 関連する要素: ${relatedItems.join('、')}`;
+            }
+            
+            return description;
         }
         
         function displayRecognitionResult(result) {

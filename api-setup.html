@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Vision API セットアップガイド</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .code {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        .warning {
+            background: #fdf2e9;
+            border: 1px solid #e67e22;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .success {
+            background: #eafaf1;
+            border: 1px solid #27ae60;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: background 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .btn-back {
+            background: #95a5a6;
+        }
+        
+        .btn-back:hover {
+            background: #7f8c8d;
+        }
+        
+        ul {
+            margin-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .screenshot {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .cost-info {
+            background: #e8f4fd;
+            border: 1px solid #3498db;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Google Vision API セットアップガイド</h1>
+        
+        <div class="success">
+            <strong>✨ 高精度AI認識を有効にするためのガイドです</strong><br>
+            このガイドに従って設定すると、同じ物体は一貫して同じ名前で認識されるようになります。
+        </div>
+
+        <h2>📋 必要なもの</h2>
+        <ul>
+            <li>Googleアカウント（Gmail等）</li>
+            <li>Google Cloud Platform（GCP）アカウント</li>
+            <li>クレジットカード（少額の課金設定用）</li>
+        </ul>
+
+        <div class="cost-info">
+            <strong>💰 料金について</strong><br>
+            Google Vision APIは月1000回まで無料です。一般的な個人利用では無料枠内で十分使用できます。
+            <ul>
+                <li>月1000回まで: 無料</li>
+                <li>1001回目以降: 1000回あたり$1.50</li>
+            </ul>
+        </div>
+
+        <h2>🚀 セットアップ手順</h2>
+
+        <div class="step">
+            <div class="step-title">Step 1: Google Cloud Console にアクセス</div>
+            <ol>
+                <li><a href="https://console.cloud.google.com/" target="_blank" class="btn">Google Cloud Console を開く</a></li>
+                <li>Googleアカウントでログイン</li>
+                <li>初回の場合、利用規約に同意して無料トライアルを開始</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <div class="step-title">Step 2: 新しいプロジェクトを作成</div>
+            <ol>
+                <li>画面上部の「プロジェクトを選択」をクリック</li>
+                <li>「新しいプロジェクト」をクリック</li>
+                <li>プロジェクト名を入力（例：「mono-no-namae-ai」）</li>
+                <li>「作成」をクリック</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <div class="step-title">Step 3: Vision API を有効化</div>
+            <ol>
+                <li>左側メニューから「APIとサービス」→「ライブラリ」</li>
+                <li>検索ボックスで「Vision」を検索</li>
+                <li>「Cloud Vision API」を選択</li>
+                <li>「有効にする」ボタンをクリック</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <div class="step-title">Step 4: APIキーを作成</div>
+            <ol>
+                <li>左側メニューから「APIとサービス」→「認証情報」</li>
+                <li>「+ 認証情報を作成」→「APIキー」をクリック</li>
+                <li>APIキーが生成されます</li>
+                <li>「キーを制限」をクリック（セキュリティのため）</li>
+                <li>「API の制限」で「Cloud Vision API」のみを選択</li>
+                <li>「保存」をクリック</li>
+            </ol>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ セキュリティに関する重要な注意</strong><br>
+            APIキーは他人に知られないよう大切に管理してください。万が一漏洩した場合は、すぐに無効化して新しいキーを作成してください。
+        </div>
+
+        <div class="step">
+            <div class="step-title">Step 5: アプリでAPIキーを設定</div>
+            <ol>
+                <li>作成されたAPIキーをコピー</li>
+                <li><a href="camera.html" class="btn">カメラページに戻る</a></li>
+                <li>撮影を試すと「Google Vision API使用しますか？」の確認が表示</li>
+                <li>「OK」を選択してAPIキーを入力</li>
+                <li>これで高精度AI認識が利用可能になります！</li>
+            </ol>
+        </div>
+
+        <div class="success">
+            <strong>🎉 設定完了！</strong><br>
+            これで同じ物体は一貫して正確に認識されるようになります。認識精度が大幅に向上し、より実用的にお使いいただけます。
+        </div>
+
+        <h2>🔧 トラブルシューティング</h2>
+
+        <div class="step">
+            <div class="step-title">よくある問題と解決方法</div>
+            
+            <h3>「API Error: 403」が表示される場合</h3>
+            <ul>
+                <li>APIキーが正しく入力されているか確認</li>
+                <li>Vision APIが有効化されているか確認</li>
+                <li>APIキーの制限設定を確認</li>
+            </ul>
+
+            <h3>「API Error: 429」が表示される場合</h3>
+            <ul>
+                <li>月1000回の無料枠を超過した可能性</li>
+                <li>課金設定を行うか、月が変わるまで待機</li>
+            </ul>
+
+            <h3>認識結果が期待と異なる場合</h3>
+            <ul>
+                <li>写真の明るさや角度を調整</li>
+                <li>物体をフレーム中央に配置</li>
+                <li>背景をシンプルにする</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <div class="step-title">APIキーをリセットしたい場合</div>
+            <ol>
+                <li>アプリの設定（ブラウザの開発者ツール）でローカルストレージをクリア</li>
+                <li>または新しいAPIキーを作成して再設定</li>
+            </ol>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="index.html" class="btn btn-back">← メインページに戻る</a>
+            <a href="camera.html" class="btn">カメラで試す</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -212,6 +212,10 @@
             <button class="function-btn btn-access" onclick="openFavoritesPage()" id="favoritesBtn">
                 💖 お気に入り
             </button>
+            
+            <button class="function-btn btn-api" onclick="openAPISetup()" id="apiBtn" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);">
+                🤖 高精度AI設定
+            </button>
         </div>
         
         <p class="app-instructions">
@@ -381,6 +385,13 @@
             
             updateStatus('お気に入りページを開いています...');
             window.location.href = 'favorites.html';
+        }
+        
+        function openAPISetup() {
+            if (isProcessing) return;
+            
+            updateStatus('API設定ページを開いています...');
+            window.location.href = 'api-setup.html';
         }
         
         // 初期化
