@@ -850,27 +850,49 @@
             try {
                 const base64Image = imageData.split(',')[1];
                 
-                const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        requests: [{
-                            image: {
-                                content: base64Image
-                            },
-                            features: [
-                                { type: 'LABEL_DETECTION', maxResults: 10 },
-                                { type: 'OBJECT_LOCALIZATION', maxResults: 10 },
-                                { type: 'TEXT_DETECTION', maxResults: 5 }
-                            ]
-                        }]
-                    })
-                });
+                // CORS問題を回避するため、複数の方法を試行
+                let response;
+                let errorDetails = '';
+                
+                // 方法1: 直接API呼び出し
+                try {
+                    response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            requests: [{
+                                image: {
+                                    content: base64Image
+                                },
+                                features: [
+                                    { type: 'LABEL_DETECTION', maxResults: 10 },
+                                    { type: 'OBJECT_LOCALIZATION', maxResults: 10 },
+                                    { type: 'TEXT_DETECTION', maxResults: 5 }
+                                ]
+                            }]
+                        })
+                    });
+                } catch (corsError) {
+                    console.warn('CORS Error detected:', corsError);
+                    errorDetails = 'CORS制限によりブラウザから直接APIを呼び出せません。';
+                    throw new Error(errorDetails);
+                }
                 
                 if (!response.ok) {
-                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                    const errorText = await response.text();
+                    console.error('API Response Error:', response.status, errorText);
+                    
+                    if (response.status === 403) {
+                        errorDetails = `API認証エラー (403): \n- APIキーが無効または制限されています\n- Vision APIが有効化されていない可能性\n- 請求設定が必要な場合があります`;
+                    } else if (response.status === 429) {
+                        errorDetails = `レート制限エラー (429): \n- 月1000回の無料枠を超過\n- 一時的にアクセス制限中`;
+                    } else {
+                        errorDetails = `API Error: ${response.status} ${response.statusText}\n${errorText}`;
+                    }
+                    
+                    throw new Error(errorDetails);
                 }
                 
                 const data = await response.json();
@@ -888,9 +910,18 @@
             } catch (error) {
                 console.error('Google Vision API エラー:', error);
                 
-                // APIエラーの場合、ユーザーに選択肢を提示
-                const retry = confirm(`AI認識エラー: ${error.message}\n\n「OK」= APIキー再設定\n「キャンセル」= デモ版で続行`);
+                // CORSエラーの場合は特別な案内
+                if (error.message.includes('CORS')) {
+                    alert(`🌐 ブラウザ制限エラー\n\n${error.message}\n\n解決策:\n1. Chrome拡張機能でCORS無効化\n2. サーバー経由でのAPI呼び出し\n3. デモ版での継続利用\n\n今回はデモ版で続行します。`);
+                    return null;
+                }
+                
+                // その他のAPIエラーの場合
+                const retry = confirm(`🚫 AI認識エラー\n\n${error.message}\n\n対処法:\n- Google Cloud ConsoleでAPI設定確認\n- 請求設定の有効化\n- APIキーの権限確認\n\n「OK」= APIキー再設定\n「キャンセル」= デモ版で続行`);
+                
                 if (retry) {
+                    // APIキーをクリアして再設定を促す
+                    localStorage.removeItem('googleVisionAPIKey');
                     const newApiKey = setAPIKey();
                     if (newApiKey) {
                         return await callGoogleVisionAPI(imageData); // 再試行
